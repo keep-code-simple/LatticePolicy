@@ -16,7 +16,18 @@ export function coerceDateOnly(value: any, fallback?: string): string {
     const trimmed = value.trim()
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
     const parsed = new Date(trimmed)
-    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10)
+    if (!Number.isNaN(parsed.getTime())) {
+      // A string with no explicit UTC offset (e.g. "July 4, 2026") is parsed as
+      // local wall-clock time, so read the date back with local getters to avoid
+      // toISOString() shifting the calendar date across timezone boundaries.
+      if (!/(Z|[+-]\d{2}:?\d{2})$/.test(trimmed)) {
+        const y = parsed.getFullYear()
+        const m = String(parsed.getMonth() + 1).padStart(2, '0')
+        const d = String(parsed.getDate()).padStart(2, '0')
+        return `${y}-${m}-${d}`
+      }
+      return parsed.toISOString().slice(0, 10)
+    }
   }
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString().slice(0, 10)

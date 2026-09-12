@@ -35,6 +35,16 @@ describe('date.utils', () => {
     expect(asDateOnly('not a date')).toBeUndefined()
   })
 
+  it('coerces zoneless date strings consistently regardless of local TZ', () => {
+    const originalTz = process.env.TZ
+    process.env.TZ = 'Asia/Kolkata'
+    try {
+      expect(coerceDateOnly('July 4, 2026')).toBe('2026-07-04')
+    } finally {
+      process.env.TZ = originalTz
+    }
+  })
+
   it('adds calendar days and months and computes month differences', () => {
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01')
     expect(addDays('2026-01-01', -1)).toBe('2025-12-31')
